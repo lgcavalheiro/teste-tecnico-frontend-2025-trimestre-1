@@ -1,16 +1,25 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { AddressEntry, AddressBookContextType, ADDRESS_BOOK_STORAGE_KEY, generateId } from '@/types/addressBook';
+import { AddressEntry, AddressBookContextType, ADDRESS_BOOK_STORAGE_KEY } from '@/types/addressBook';
+import { generateId } from '@/lib/utils';
+import { toast } from 'sonner';
+import { CircleCheck } from 'lucide-react';
 
-// Create the context with a default value
 const AddressBookContext = createContext<AddressBookContextType | undefined>(undefined);
+
+const successToastOpts = {
+  icon: <CircleCheck />,
+  classNames: {
+    icon: 'text-success pr-6',
+    content: 'text-success',
+  },
+}
 
 export const AddressBookProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [entries, setEntries] = useState<AddressEntry[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Load entries from localStorage on initial render
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -19,7 +28,7 @@ export const AddressBookProvider: React.FC<{ children: React.ReactNode }> = ({ c
           setEntries(JSON.parse(storedEntries));
         }
       } catch (error) {
-        console.error('Failed to load address book from localStorage:', error);
+        console.error('Falha ao carregar agenda de endereços:', error);
       } finally {
         setIsInitialized(true);
       }
@@ -31,14 +40,14 @@ export const AddressBookProvider: React.FC<{ children: React.ReactNode }> = ({ c
       try {
         localStorage.setItem(ADDRESS_BOOK_STORAGE_KEY, JSON.stringify(entries));
       } catch (error) {
-        console.error('Failed to save address book to localStorage:', error);
+        console.error('Falha ao salvar agenda de endereços:', error);
       }
     }
   }, [entries, isInitialized]);
 
   const addEntry = (entry: Omit<AddressEntry, 'id'>) => {
     if (!entry.username || !entry.addressAlias || !entry.cep) {
-      throw new Error('All fields are required');
+      throw new Error('Todos os campos são obrigatórios');
     }
 
     const newEntry: AddressEntry = {
@@ -47,6 +56,8 @@ export const AddressBookProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
 
     setEntries(prevEntries => [...prevEntries, newEntry]);
+
+    toast.success("Endereço adicionado com sucesso!", successToastOpts);
   };
 
   const updateEntry = (id: string, updates: Partial<Omit<AddressEntry, 'id' | 'cep'>>) => {
@@ -55,50 +66,99 @@ export const AddressBookProvider: React.FC<{ children: React.ReactNode }> = ({ c
         entry.id === id ? { ...entry, ...updates } : entry
       )
     );
+
+    toast.success("Endereço atualizado com sucesso!", successToastOpts);
   };
 
   const removeEntry = (id: string) => {
     setEntries(prevEntries => prevEntries.filter(entry => entry.id !== id));
+
+    toast.success("Endereço removido com sucesso!", successToastOpts);
   };
 
-  const getEntry = (id: string) => {
-    return entries.find(entry => entry.id === id);
-  };
-
-  const getEntriesByUsername = (username: string) => {
+  const getEntriesByUsername = (username: string, entries: AddressEntry[]) => {
     return entries.filter(entry =>
       entry.username.toLowerCase().includes(username.toLowerCase())
     );
   };
 
-  const getEntriesByCity = (city: string) => {
+  const getEntriesByCity = (city: string, entries: AddressEntry[]) => {
     return entries.filter(entry =>
       entry.localidade.toLowerCase().includes(city.toLowerCase())
     );
   };
 
-  const getEntriesByState = (state: string) => {
+  const getEntriesByState = (state: string, entries: AddressEntry[]) => {
     return entries.filter(entry =>
       entry.uf.toLowerCase() === state.toLowerCase()
     );
   };
 
-  const searchByAddressAlias = (query: string) => {
+  const searchByAddressAlias = (query: string, entries: AddressEntry[]) => {
     return entries.filter(entry =>
       entry.addressAlias.toLowerCase().includes(query.toLowerCase())
     );
   };
 
+  const [filters, setFilters] = useState({
+    username: '',
+    city: 'all',
+    state: 'all',
+    addressAlias: ''
+  });
+
+  const uniqueCities = React.useMemo(() => {
+    const cities = new Set(
+      entries
+        .map(entry => entry.localidade)
+        .filter(Boolean)
+    );
+    return Array.from(cities).sort();
+  }, [entries]);
+
+  const uniqueStates = React.useMemo(() => {
+    const states = new Set(
+      entries
+        .map(entry => entry.uf)
+        .filter(Boolean)
+    );
+    return Array.from(states).sort();
+  }, [entries]);
+
+  const filteredEntries = React.useMemo(() => {
+    let result = [...entries];
+
+    if (filters.username) {
+      result = getEntriesByUsername(filters.username, result);
+    }
+    if (filters.city !== 'all') {
+      result = getEntriesByCity(filters.city, result);
+    }
+    if (filters.state !== 'all') {
+      result = getEntriesByState(filters.state, result);
+    }
+    if (filters.addressAlias) {
+      result = searchByAddressAlias(filters.addressAlias, result);
+    }
+    return result;
+  }, [entries, filters]);
+
+  const handleFilterChange = (field: keyof typeof filters, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const value = {
-    entries,
+    entries: filteredEntries ?? entries,
     addEntry,
     updateEntry,
     removeEntry,
-    getEntry,
-    getEntriesByUsername,
-    getEntriesByCity,
-    getEntriesByState,
-    searchByAddressAlias,
+    filters,
+    handleFilterChange,
+    uniqueCities,
+    uniqueStates,
   };
 
   return (
@@ -108,11 +168,10 @@ export const AddressBookProvider: React.FC<{ children: React.ReactNode }> = ({ c
   );
 };
 
-// Custom hook to use the address book context
 export const useAddressBook = (): AddressBookContextType => {
   const context = useContext(AddressBookContext);
   if (context === undefined) {
-    throw new Error('useAddressBook must be used within an AddressBookProvider');
+    throw new Error('useAddressBook deve ser usado dentro de um AddressBookProvider');
   }
   return context;
 };

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AddressBookProvider } from "@/contexts/AddressBookContext";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans bg-primary text-primary-foreground`}>
         <AddressBookProvider>
           {children}
+          <Toaster />
         </AddressBookProvider>
       </body>
     </html>

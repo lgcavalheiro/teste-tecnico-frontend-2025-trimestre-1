@@ -5,25 +5,24 @@ import { useAddressBook } from '@/contexts/AddressBookContext';
 import { Input } from '@/components/shadcn/input';
 import { Button } from '@/components/shadcn/button';
 import { CEPResponse } from '@/types/cep';
+import { toast } from 'sonner';
+import { CircleAlert } from 'lucide-react';
 
 export default function AddressEntryAdd() {
   const [cep, setCep] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { addEntry } = useAddressBook();
-  const [error, setError] = useState<string | null>(null);
 
   const handleCepChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, ''); // Remove non-numeric characters
+    const value = e.target.value.replace(/\D/g, '');
     if (value.length <= 8) {
       setCep(value);
-      setError(null);
     }
   };
 
   const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value);
-    setError(null);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -32,7 +31,6 @@ export default function AddressEntryAdd() {
     if (!isFormValid) return;
     
     setIsLoading(true);
-    setError(null);
     
     try {
       const response = await fetch(`/api/cep/${cep}`);
@@ -66,14 +64,25 @@ export default function AddressEntryAdd() {
       setName('');
       
     } catch (err) {
-      setError('Erro ao buscar CEP. Por favor, verifique o número e tente novamente.');
-      console.error('Error fetching CEP:', err);
+      toast.error(
+        'Erro ao buscar CEP:', 
+        { 
+          description: <>
+            <p>{(err as Error).message}</p>
+            <p>Por favor, verifique o número e tente novamente.</p>
+          </>,
+          icon: <CircleAlert />,
+          classNames: {
+            icon: 'text-destructive pr-6',
+            content: 'text-destructive',
+          },
+        }
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Form validation
   const isCepValid = cep.length === 8;
   const isNameValid = name.trim().length > 0;
   const isFormValid = isCepValid && isNameValid && !isLoading;
@@ -94,7 +103,7 @@ export default function AddressEntryAdd() {
               value={name}
               onChange={handleNameChange}
               placeholder="Digite seu nome"
-              className="w-full text-black"
+              className="w-full text-gray-700"
             />
           </div>
           <div className="space-y-2">
@@ -110,7 +119,7 @@ export default function AddressEntryAdd() {
               onChange={handleCepChange}
               placeholder="00000000"
               maxLength={8}
-              className="w-full text-black"
+              className="w-full text-gray-700"
             />
             {!isCepValid && cep.length > 0 && (
               <p className="text-sm text-red-500">O CEP deve ter exatamente 8 d gitos</p>
@@ -126,12 +135,6 @@ export default function AddressEntryAdd() {
             {isLoading ? 'Buscando...' : 'Buscar e Salvar'}
           </Button>
         </div>
-        
-        {error && (
-          <div className="p-3 text-sm text-red-700 bg-red-100 rounded-md">
-            {error}
-          </div>
-        )}
       </form>
     </div>
   );
