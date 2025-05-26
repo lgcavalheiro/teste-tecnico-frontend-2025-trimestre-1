@@ -11,19 +11,17 @@ import AddressDeleteConfirm from './AddressDeleteConfirm';
 
 interface AddressEntryProps {
   entry: AddressEntryType;
-  onDelete: (id: string) => void;
-  onEdit?: (id: string) => void;
 }
 
-export default function AddressEntry({ entry, onDelete }: AddressEntryProps) {
-  const { updateEntry } = useAddressBook();
+export default function AddressEntry({ entry }: AddressEntryProps) {
+  const { updateEntry, removeEntry } = useAddressBook();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDeleteOpen = () => setDeleteDialogOpen(true);
   const handleDeleteCancel = () => setDeleteDialogOpen(false);
   const handleDeleteConfirm = () => {
-    onDelete(entry.id);
+    removeEntry(entry.id);
     setDeleteDialogOpen(false);
   };
 

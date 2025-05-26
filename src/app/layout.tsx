@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AddressBookProvider } from "@/contexts/AddressBookContext";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/shadcn/sonner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -11,7 +11,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Agenda de Endereços",
-  description: "Teste técnico para vaga de Frontend Dev",
+  description: "Teste técnico para vaga de Dev Fullstack",
 };
 
 export default function RootLayout({

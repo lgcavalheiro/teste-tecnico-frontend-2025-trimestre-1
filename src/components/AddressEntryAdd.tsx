@@ -67,10 +67,10 @@ export default function AddressEntryAdd() {
       toast.error(
         'Erro ao buscar CEP:', 
         { 
-          description: <>
+          description: <div className="text-foreground">
             <p>{(err as Error).message}</p>
             <p>Por favor, verifique o número e tente novamente.</p>
-          </>,
+          </div>,
           icon: <CircleAlert />,
           classNames: {
             icon: 'text-destructive pr-6',

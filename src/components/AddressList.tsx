@@ -3,10 +3,7 @@ import AddressEntryComponent from './AddressEntry';
 import { useAddressBook } from '@/contexts/AddressBookContext';
 
 export default function AddressList() {
-  const {
-    removeEntry,
-    entries,
-  } = useAddressBook();
+  const { entries } = useAddressBook();
 
   return (
     <div className="mt-8">
@@ -22,7 +19,6 @@ export default function AddressList() {
             <AddressEntryComponent
               key={entry.id}
               entry={entry}
-              onDelete={removeEntry}
             />
           ))
         ) : (
