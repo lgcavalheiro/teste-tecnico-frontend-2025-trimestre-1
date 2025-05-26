@@ -1,6 +1,10 @@
 # teste-tecnico-frontend-2025-trimestre-1
 Data de início: 24/05/2025 - 18:32h
 
+Como rodar o projeto:
+- npm install
+- npm run dev
+
 Teste técnico para a posição de Frontend Dev. Edição do primeiro trimestre de 2025.
 
 ## A proposta: Agenda de Endereços
