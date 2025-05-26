@@ -1,9 +1,12 @@
 # teste-tecnico-frontend-2025-trimestre-1
 Data de início: 24/05/2025 - 18:32h
+Data de término: 26/05/2025 - 15:00h
 
 Como rodar o projeto:
-- npm install
-- npm run dev
+```bash
+npm install
+npm run dev
+```
 
 Teste técnico para a posição de Frontend Dev. Edição do primeiro trimestre de 2025.
 
